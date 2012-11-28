@@ -142,4 +142,4 @@ for (int i : optional(numeric, mayBeNumber).map(toInt)) {
 If `mayBeNumber` is numeric, the string is converted to an integer and assigned to `int i`,
 and the block is executed. If mayBeNumber is not numeric, the `None` singleton instance is
 returned from both `optional(..)`, and `map(..)`, and following no assignement is done to
-`int i`
+`i`.
