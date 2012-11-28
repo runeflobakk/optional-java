@@ -67,6 +67,11 @@ public abstract class Optional<V> implements Iterable<V> {
         public boolean isSome() {
             return true;
         }
+
+        @Override
+        public O getOrElse(O fallback) {
+            return get();
+        }
     }
 
     public static final class None<V> extends Optional<V> {
@@ -99,6 +104,11 @@ public abstract class Optional<V> implements Iterable<V> {
             return false;
         }
 
+        @Override
+        public V getOrElse(V fallback) {
+            return fallback;
+        }
+
     }
 
     public V get() {
@@ -115,4 +125,6 @@ public abstract class Optional<V> implements Iterable<V> {
     }
 
     public abstract boolean isSome();
+
+    public abstract V getOrElse(V fallback);
 }

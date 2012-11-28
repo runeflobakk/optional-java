@@ -93,6 +93,16 @@ public class OptionalTest {
         assertTrue(optional(not(blank()), "abc").isSome());
     }
 
+    @Test
+    public void getOrElseOnNoneReturnsElse() {
+        assertThat(optional((String) null).getOrElse("else"), is("else"));
+    }
+
+    @Test
+    public void getOrElseOnSomeReturnsTheOptionalValue() {
+        assertThat(optional("some").getOrElse("else"), is("some"));
+    }
+
 
 
 }
