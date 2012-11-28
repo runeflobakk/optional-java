@@ -17,8 +17,10 @@ Basic use
 An Optional can be constructed using the `no.runeflobakk.option.Optional.optional(..)`
 factory method. It should be statically imported and used like this:
 
-    String string = //get string or null from somewhere
-    Optional<String> optString = optional(string);
+```java
+String string = //get string or null from somewhere
+Optional<String> optString = optional(string);
+```
 
 Now, `optString` is either an instance of `Some<String>` or the singleton `None`. It can be
 queried using `optString.isSome()` to determine if the string is indeed present or not, and if
@@ -39,7 +41,9 @@ seem strange to "iterate" one value, but what we are actually using the loop for
 
 Using `optString` from the previous example, we can print the string if it exists:
 
-    for (String s : optString) { System.out.println(s); }
+```java
+for (String s : optString) { System.out.println(s); }
+```
 
 We can even write it on one line, and it doesn't look half-bad.
 
@@ -53,6 +57,15 @@ This implementation relies heavily on functional interfaces from
 [Commons-Collection with Generics](http://sourceforge.net/projects/collections/files/) to
 provide support for some functional programming concepts.
 
+To add Commons-Collection with Generics to your Maven-project, use this dependency:
+
+```xml
+<dependency>
+    <groupId>net.sourceforge.collections</groupId>
+    <artifactId>collections-generic</artifactId>
+    <version>4.01</version>
+</dependency>
+```
 
 
 ### Deciding `Some` or `None` based on predicate
@@ -66,15 +79,19 @@ Say we have an implementation of
 [Predicate](http://collections.sourceforge.net/api/org/apache/commons/collections/Predicate.html)
 that matches non-blank strings:
 
-    public final Predicate<String> nonBlank = new Predicate<String>() {
-        public boolean evaluate(String string) {
-            return !StringUtils.isBlank(string); //StringUtils is from Apache Commons Lang
-        }
-    };
+```java
+public final Predicate<String> nonBlank = new Predicate<String>() {
+    public boolean evaluate(String string) {
+        return !StringUtils.isBlank(string); //StringUtils is from Apache Commons Lang
+    }
+};
+```
 
 Then we can use the predicate with `optional` like this:
 
-    for(String s : optional(nonBlank, "")) { throw new RuntimeException(); }
+```java
+for(String s : optional(nonBlank, "")) { throw new RuntimeException(); }
+```
 
 No exception will be thrown in the above code. If we did not include the predicate, `String s`
 would be assigned the empty string, and a `RuntimeException` would have been thrown.
@@ -94,27 +111,33 @@ interface.
 
 Say we have a string that may or may not be numeric and we are only interested in it if indeed is numeric. We need a predicate to decide if a string is numeric:
 
-    public final Predicate<String> numeric = new Predicate<String>() {
-        public boolean evaluate(String string) {
-            return !StringUtils.isNumeric(string);
-        }
-    };
+```java
+public final Predicate<String> numeric = new Predicate<String>() {
+    public boolean evaluate(String string) {
+        return !StringUtils.isNumeric(string);
+    }
+};
+```
 
 
 We also need to parse the string as an `int` to be able to use it, so we define a transformer for that:
 
-    public final Transformer<String, Integer> toInt = new Transformer<String, Integet>() {
-        public Integer transformer(String string) {
-            return Integer.parseInt(string);
-        }
-    };
+```java
+public final Transformer<String, Integer> toInt = new Transformer<String, Integet>() {
+    public Integer transformer(String string) {
+        return Integer.parseInt(string);
+    }
+};
+```
 
 The two functions defined above can then be used with `optional` like this:
 
-    String mayBeNumber = //get the number
-    for (int i : optional(numeric, mayBeNumber).map(toInt)) {
-        // do somethin with i
-    }
+```java
+String mayBeNumber = //get the number
+for (int i : optional(numeric, mayBeNumber).map(toInt)) {
+    // do somethin with i
+}
+```
 
 If `mayBeNumber` is numeric, the string is converted to an integer and assigned to `int i`,
 and the block is executed. If mayBeNumber is not numeric, the `None` singleton instance is
