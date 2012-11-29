@@ -1,6 +1,7 @@
 package no.runeflobakk.option;
 
 import static org.apache.commons.collections15.PredicateUtils.notNullPredicate;
+import static org.apache.commons.collections15.TransformerUtils.chainedTransformer;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -11,13 +12,56 @@ import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.functors.NOPTransformer;
 
+/**
+ * An <code>Optional</code> wraps a value that is either defined or
+ * undefined. Usually, undefined means <code>null</code>, and defined means
+ * an object instance, but the distinction between defined and undefined can
+ * be customized with a {@link Predicate}.
+ *
+ * @param <V> The type of the wrapped object.
+ *
+ * @see #optional(Object)
+ * @see #optional(Predicate, Object)
+ */
 public abstract class Optional<V> implements Iterable<V> {
 
-
+    /**
+     * Wrap an object or <code>null</code> in an <code>Optional</code>.
+     *
+     * @param value The object to wrap. May be <code>null</code>.
+     * @param <V>   The type of the wrapped object.
+     *
+     * @return {@link Some} if <code>value</code> is an object,
+     *         {@link None} if <code>value</code> is <code>null</code>
+     *
+     * @see Optional
+     * @see Some
+     * @see None
+     */
     public static <V> Optional<V> optional(V value) {
         return optional(notNullPredicate(), value);
     }
 
+
+    /**
+     * Wrap an object in an <code>Optional</code>, using a predicate to
+     * determine if the value should be treated as defined.
+     *
+     * @param <V>       The type of the wrapped object.
+     * @param isPresent A {@link Predicate} function returning true if
+     *                  the value is considered defined or 'present'. This
+     *                  function must be able to handle <code>null</code>.
+     *
+     * @param value     The object to wrap. May be <code>null</code>.
+     *
+     *
+     * @return          {@link Some} if <code>value</code> is defined,
+     *                  {@link None} otherwise.
+     *
+     * @see Optional
+     * @see Some
+     * @see None
+     */
     public static <V> Optional<V> optional(Predicate<? super V> isPresent, V value) {
         if (isPresent.evaluate(value)) {
             return new Some<V, V>(value);
@@ -26,6 +70,16 @@ public abstract class Optional<V> implements Iterable<V> {
         }
     }
 
+
+
+
+    /**
+     * Wrapper for a 'defined' value. You never under normal
+     * circumstances refer to this type.
+     *
+     * @param <V> The type of the wrapped object.
+     * @param <O> The type of the obtained object from this wrapper.
+     */
     public static final class Some<V, O> extends Optional<O> {
 
         private final V value;
@@ -47,7 +101,7 @@ public abstract class Optional<V> implements Iterable<V> {
         }
 
         @Override
-        public Iterator<O> iterator() {
+        public final Iterator<O> iterator() {
             return new ReadOnlyIterator<O>() {
                 private boolean returned = false;
                 @Override
@@ -64,16 +118,27 @@ public abstract class Optional<V> implements Iterable<V> {
         }
 
         @Override
-        public boolean isSome() {
+        public final boolean isSome() {
             return true;
         }
 
         @Override
-        public O getOrElse(O fallback) {
+        public final O getOrElse(O fallback) {
             return get();
+        }
+
+        @Override
+        public <M> Optional<M> map(Transformer<? super O, M> transformer) {
+            return new Some<V, M>(this.value, chainedTransformer(this.transformer, transformer));
         }
     }
 
+    /**
+     * Wrapper for an 'undefined' value. You never under normal
+     * circumstances refer to this type.
+     *
+     * @param <V> The type of the undefined value.
+     */
     public static final class None<V> extends Optional<V> {
 
         private static final None<?> instance = new None<Object>();
@@ -84,7 +149,7 @@ public abstract class Optional<V> implements Iterable<V> {
         }
 
         @Override
-        public Iterator<V> iterator() {
+        public final Iterator<V> iterator() {
             return new ReadOnlyIterator<V>() {
 
                 @Override
@@ -100,31 +165,70 @@ public abstract class Optional<V> implements Iterable<V> {
         }
 
         @Override
-        public boolean isSome() {
+        public final boolean isSome() {
             return false;
         }
 
         @Override
-        public V getOrElse(V fallback) {
+        public final V getOrElse(V fallback) {
             return fallback;
         }
 
+        @Override
+        public <O> Optional<O> map(Transformer<? super V, O> transformer) {
+            return None.getInstance();
+        }
+
     }
 
-    public V get() {
+
+
+    /**
+     * Obtain the value contained in the <code>Optional</code>. To use
+     * this method one <em>must</em> first determine that the
+     * <code>Optional</code> does in fact hold a value.
+     *
+     * To obtain the wrapped value, it is in general preferable to favor
+     * <em>iterating</em> or using {@link #getOrElse(V)}, which will never
+     * throw an exception.
+     *
+     * @throws NoSuchElementException if this method is called on an
+     *         <code>Optional</code> without a defined value.
+     *
+     * @see #isSome()
+     */
+    public final V get() {
         return iterator().next();
     }
 
-    @SuppressWarnings("unchecked")
-    public <M> Optional<M> map(Transformer<? super V, M> transformer) {
-        if (this instanceof None) {
-            return None.getInstance();
-        } else {
-            return new Some<V, M>(((Some<?, V>) this).get(), transformer);
-        }
-    }
 
+
+    /**
+     * Map this <code>Optional</code> to another type of <code>Optional</code>.
+     *
+     * @param transformer A {@link Transformer} function which transforms
+     *                    (or maps) the wrapped value to another value. This
+     *                    function will only ever be called if the
+     *                    <code>Optional</code> holds a defined value.
+     *
+     * @return A new <code>Optional</code> from which the new value can be
+     *         obtained, if it is defined.
+     */
+    public abstract <O> Optional<O> map(Transformer<? super V, O> transformer);
+
+
+    /**
+     * @return <code>true</code> if the <code>Optional</code> holds a
+     *         defined value, or <code>false</code> otherwise, which usually
+     *         means that the wrapped value is <code>null</code>.
+     */
     public abstract boolean isSome();
 
+
+    /**
+     *
+     * @param fallback
+     * @return
+     */
     public abstract V getOrElse(V fallback);
 }

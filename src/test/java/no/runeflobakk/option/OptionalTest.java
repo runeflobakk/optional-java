@@ -17,6 +17,7 @@ import java.util.NoSuchElementException;
 import no.runeflobakk.option.Optional.None;
 import no.runeflobakk.option.Optional.Some;
 
+import org.apache.commons.collections15.Transformer;
 import org.junit.Test;
 
 
@@ -33,12 +34,13 @@ public class OptionalTest {
     }
 
     @Test
-    public void iteratesOverSome() {
+    public void iteratesOneTimeOverSome() {
+        int iterations = 0;
         for (String value : optional("value")) {
             assertThat(value, is("value"));
-            return;
+            iterations++;
         }
-        fail("should iterate the optional value");
+        assertThat(iterations, is(1));
     }
 
     @Test
@@ -64,6 +66,28 @@ public class OptionalTest {
         assertThat(
                 optional("    VALUE    ")
                 .map(first(toLowerCase()).then(trimmed())).get(), is("value"));
+    }
+
+    @Test
+    public void severalMappingsOfSomeValue() {
+        assertThat(optional(" X ").map(toLowerCase()).map(trimmed()).get(), is("x"));
+    }
+
+    @Test
+    public void severalMappingOfNone() {
+        assertThat(optional((String) null).map(toLowerCase()).map(trimmed()).getOrElse("y"), is("y"));
+    }
+
+    @Test
+    public void shouldNeverCallTheMapFunctionWhileMapping() {
+        Transformer<Object, Integer> neverCall = new Transformer<Object, Integer>() {
+            @Override
+            public Integer transform(Object input) {
+                fail("The mapping function should not be called!");
+                return null;
+            }
+        };
+        optional(42).map(neverCall).map(neverCall).map(neverCall).map(neverCall);
     }
 
     @Test
@@ -103,6 +127,10 @@ public class OptionalTest {
         assertThat(optional("some").getOrElse("else"), is("some"));
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void removingFromAnOptionalIteratorIsAbsurd() {
+        optional("x").iterator().remove();
+    }
 
 
 }
