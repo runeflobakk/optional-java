@@ -1,7 +1,7 @@
 Optional<V> in Java
 ============================
 
-This is my first attempt at the Optional<V> type, implemented in Java. Optional, or variants of it, is a ubiquitous type typically present in functional or hybrid-functional languages. It is used in situations where it is valid for a procedure (function, method, etc) to terminate with no result. In Java, the idiomatic way to do this is to return the dreaded null-pointer, or `return null`. However, the "no result"-result, or `null`, cannot be expressed in the type system, and is typically the source of numerous `NullPointerExceptions` where the caller of a method forgets to check if the returned value is, in fact, an instance before dereferencing it. The Option type explicitly expresses that a value may be something, or may be nothing, on a type level.
+This is my first attempt at the Optional<V> type, implemented in Java. Optional, or variants of it, is a ubiquitous type typically present in functional or hybrid-functional languages. It is used for cases when it is valid for a procedure (function, method, etc) to terminate with no result. In Java, the idiomatic way to do this is to return the dreaded null-pointer, or `return null`. However, the possibility of a "no result"-result, or `null`, cannot be expressed by the type system, and is typically the source of numerous `NullPointerExceptions` where the caller of a method forgets to check if the returned value is, in fact, an instance before dereferencing it. The Option type explicitly expresses that a value may be something, or may be nothing, at the type level.
 
 
 Basic use
@@ -78,7 +78,7 @@ No exception will be thrown in the above code. If we did not include the predica
 
 `Optional` also supports mapping (or transforming) its value to something else. The mapping operation is safe; you can perfectly map a non-existing value. The key is that the `.map(..)` method returns a new Optional of the result type of the mapping function. The actual mapping is not performed before you actually try to obtain the value. The mapping functions are implementations of the [Transformer<I, O>](http://collections.sourceforge.net/api/org/apache/commons/collections/Transformer.html) interface.
 
-Say we have a string that may or may not be numeric and we are only interested in it if indeed is numeric. We need a predicate to decide if a string is numeric:
+Say we have a string that may or may not be numeric and we are only interested in it if indeed it is numeric. We need a predicate to decide if a string is numeric:
 
 ```java
 public final Predicate<String> numeric = new Predicate<String>() {
@@ -92,7 +92,7 @@ public final Predicate<String> numeric = new Predicate<String>() {
 We also need to parse the string as an `int` to be able to use it, so we define a transformer for that:
 
 ```java
-public final Transformer<String, Integer> toInt = new Transformer<String, Integet>() {
+public final Transformer<String, Integer> toInt = new Transformer<String, Integer>() {
     public Integer transformer(String string) {
         return Integer.parseInt(string);
     }
@@ -104,8 +104,8 @@ The two functions defined above can then be used with `optional` like this:
 ```java
 String mayBeNumber = //get the number
 for (int i : optional(numeric, mayBeNumber).map(toInt)) {
-    // do somethin with i
+    // do something with i
 }
 ```
 
-If `mayBeNumber` is numeric, the string is converted to an integer and assigned to `int i`, and the block is executed. If mayBeNumber is not numeric, the `None` singleton instance is returned from both `optional(..)`, and `map(..)`, and following no assignement is done to `i`.
+If `mayBeNumber` is numeric, the string is converted to an integer and assigned to `int i`, and the block is executed. If mayBeNumber is not numeric, the `None` singleton instance is returned from both `optional(..)`, and `map(..)`, and following no assignment is done to `i`.
