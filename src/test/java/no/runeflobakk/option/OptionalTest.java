@@ -2,11 +2,13 @@ package no.runeflobakk.option;
 
 import static no.runeflobakk.fun.Predicates.blank;
 import static no.runeflobakk.fun.Predicates.not;
-import static no.runeflobakk.fun.Transformers.first;
 import static no.runeflobakk.fun.Transformers.toLowerCase;
+import static no.runeflobakk.fun.Transformers.toNull;
 import static no.runeflobakk.fun.Transformers.trimmed;
 import static no.runeflobakk.option.Optional.optional;
+import static org.apache.commons.collections15.PredicateUtils.truePredicate;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -17,7 +19,6 @@ import java.util.NoSuchElementException;
 import no.runeflobakk.option.Optional.None;
 import no.runeflobakk.option.Optional.Some;
 
-import org.apache.commons.collections15.Transformer;
 import org.junit.Test;
 
 
@@ -65,7 +66,7 @@ public class OptionalTest {
     public void mapTheValue() {
         assertThat(
                 optional("    VALUE    ")
-                .map(first(toLowerCase()).then(trimmed())).get(), is("value"));
+                .map(toLowerCase()).map(trimmed()).get(), is("value"));
     }
 
     @Test
@@ -76,18 +77,6 @@ public class OptionalTest {
     @Test
     public void severalMappingOfNone() {
         assertThat(optional((String) null).map(toLowerCase()).map(trimmed()).getOrElse("y"), is("y"));
-    }
-
-    @Test
-    public void shouldNeverCallTheMapFunctionWhileMapping() {
-        Transformer<Object, Integer> neverCall = new Transformer<Object, Integer>() {
-            @Override
-            public Integer transform(Object input) {
-                fail("The mapping function should not be called!");
-                return null;
-            }
-        };
-        optional(42).map(neverCall).map(neverCall).map(neverCall).map(neverCall);
     }
 
     @Test
@@ -130,6 +119,28 @@ public class OptionalTest {
     @Test(expected = UnsupportedOperationException.class)
     public void removingFromAnOptionalIteratorIsAbsurd() {
         optional("x").iterator().remove();
+    }
+
+    @Test
+    public void mapperFunctionReturningNullCreatesNone() {
+        Optional<?> none = optional("whatever").map(toNull());
+        assertFalse(none.isSome());
+    }
+
+    @Test
+    public void mappingToNoneWithFailingPredicate() {
+        Optional<?> none = optional("   ").map(not(blank()), trimmed());
+        assertFalse(none.isSome());
+    }
+
+    @Test
+    public void mappingNoneAlwaysGiveSameNone() {
+        Optional<String> none = optional((String) null);
+        Optional<String> mappedNone1 = none.map(toLowerCase());
+        Optional<String> mappedNone2 = none.map(truePredicate(), toLowerCase());
+
+        assertThat(none, sameInstance(mappedNone1));
+        assertThat(none, sameInstance(mappedNone2));
     }
 
 

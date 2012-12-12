@@ -1,7 +1,6 @@
 package no.runeflobakk.option;
 
 import static org.apache.commons.collections15.PredicateUtils.notNullPredicate;
-import static org.apache.commons.collections15.TransformerUtils.chainedTransformer;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -10,7 +9,6 @@ import no.runeflobakk.iter.ReadOnlyIterator;
 
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
-import org.apache.commons.collections15.functors.NOPTransformer;
 
 /**
  * An <code>Optional</code> wraps a value that is either defined or
@@ -64,7 +62,7 @@ public abstract class Optional<V> implements Iterable<V> {
      */
     public static <V> Optional<V> optional(Predicate<? super V> isPresent, V value) {
         if (isPresent.evaluate(value)) {
-            return new Some<V, V>(value);
+            return new Some<V>(value);
         } else {
             return None.getInstance();
         }
@@ -80,29 +78,17 @@ public abstract class Optional<V> implements Iterable<V> {
      * @param <V> The type of the wrapped object.
      * @param <O> The type of the obtained object from this wrapper.
      */
-    public static final class Some<V, O> extends Optional<O> {
+    public static final class Some<V> extends Optional<V> {
 
         private final V value;
-        private final Transformer<? super V, O> transformer;
 
         private Some(V value) {
-            this(value, null);
-
-        }
-
-        @SuppressWarnings("unchecked")
-        private Some(V value, Transformer<? super V, O> transformer) {
             this.value = value;
-            if (transformer == null) {
-                this.transformer = (Transformer<? super V, O>) NOPTransformer.getInstance();
-            } else {
-                this.transformer = transformer;
-            }
         }
 
         @Override
-        public final Iterator<O> iterator() {
-            return new ReadOnlyIterator<O>() {
+        public final Iterator<V> iterator() {
+            return new ReadOnlyIterator<V>() {
                 private boolean returned = false;
                 @Override
                 public boolean hasNext() {
@@ -110,9 +96,9 @@ public abstract class Optional<V> implements Iterable<V> {
                 }
 
                 @Override
-                public O next() {
+                public V next() {
                     returned = true;
-                    return transformer.transform(value);
+                    return value;
                 }
             };
         }
@@ -123,13 +109,20 @@ public abstract class Optional<V> implements Iterable<V> {
         }
 
         @Override
-        public final O getOrElse(O fallback) {
+        public final V getOrElse(V fallback) {
             return get();
         }
 
         @Override
-        public <M> Optional<M> map(Transformer<? super O, M> transformer) {
-            return new Some<V, M>(this.value, chainedTransformer(this.transformer, transformer));
+        public <O> Optional<O> map(Transformer<? super V, O> transformer) {
+            O mapped = transformer.transform(this.value);
+            return optional(mapped);
+        }
+
+        @Override
+        public <O> Optional<O> map(Predicate<? super O> isPresent, Transformer<? super V, O> transformer) {
+            O mapped = transformer.transform(this.value);
+            return optional(isPresent, mapped);
         }
     }
 
@@ -179,6 +172,11 @@ public abstract class Optional<V> implements Iterable<V> {
             return None.getInstance();
         }
 
+        @Override
+        public <O> Optional<O> map(Predicate<? super O> isPresent, Transformer<? super V, O> transformer) {
+            return None.getInstance();
+        }
+
     }
 
 
@@ -218,6 +216,15 @@ public abstract class Optional<V> implements Iterable<V> {
 
 
     /**
+     * Map this <code>Optional</code> to another type of <code>Optional</code>.
+     *
+     * @see #map(Transformer)
+     * @see #optional(Predicate, Object)
+     */
+    public abstract <O> Optional<O> map(Predicate<? super O> isPresent, Transformer<? super V, O> transformer);
+
+
+    /**
      * @return <code>true</code> if the <code>Optional</code> holds a
      *         defined value, or <code>false</code> otherwise, which usually
      *         means that the wrapped value is <code>null</code>.
@@ -227,8 +234,9 @@ public abstract class Optional<V> implements Iterable<V> {
 
     /**
      *
-     * @param fallback
+     * @param fallback A value to return if called on a {@link None}.
      * @return
      */
     public abstract V getOrElse(V fallback);
+
 }

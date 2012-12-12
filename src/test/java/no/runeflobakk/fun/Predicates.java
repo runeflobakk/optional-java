@@ -9,10 +9,7 @@ public final class Predicates {
 
     public static final Predicate<String> blank() {
         return new Predicate<String>() {
-            @Override
-            public boolean evaluate(String string) {
-                return isBlank(string);
-            }
+            @Override public boolean evaluate(String string) { return isBlank(string); }
         };
     }
 
@@ -20,5 +17,5 @@ public final class Predicates {
         return notPredicate(predicate);
     }
 
-    private Predicates() {}
+    private Predicates() {} static { new Predicates(); }
 }

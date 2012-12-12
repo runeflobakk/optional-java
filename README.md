@@ -76,7 +76,7 @@ No exception will be thrown in the above code. If we did not include the predica
 
 ### Map the optional value
 
-`Optional` also supports mapping (or transforming) its value to something else. The mapping operation is safe; you can perfectly map a non-existing value. The key is that the `.map(..)` method returns a new Optional of the result type of the mapping function. The actual mapping is not performed before you actually try to obtain the value. The mapping functions are implementations of the [Transformer<I, O>](http://collections.sourceforge.net/api/org/apache/commons/collections/Transformer.html) interface.
+`Optional` also supports mapping (or transforming) its value to something else. The mapping operation is safe; you can perfectly map a non-existing value. The key is that the `.map(..)` method returns a new Optional of the result type of the mapping function (or `None` if the mapper function maps to `null` or any other undefined value as decided by an optional predicate). The mapping functions are implementations of the [Transformer<I, O>](http://collections.sourceforge.net/api/org/apache/commons/collections/Transformer.html) interface.
 
 Say we have a string that may or may not be numeric and we are only interested in it if indeed it is numeric. We need a predicate to decide if a string is numeric:
 
