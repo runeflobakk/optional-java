@@ -16,6 +16,11 @@
         <license>
             <name>WTFPL</name>
             <url>http://sam.zoy.org/wtfpl/COPYING</url>
+            <comments>
+                If you use this project for anything, I would appreciate some kind
+                of attribution, but this is in no way required. The license terms
+                still apply: you just do WTF you want to!
+            </comments>
         </license>
     </licenses>
 
