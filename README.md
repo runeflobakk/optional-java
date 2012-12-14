@@ -1,7 +1,7 @@
 Optional<V> in Java
 ============================
 
-This is my first attempt at the Optional<V> type, implemented in Java. Optional, or variants of it, is a ubiquitous type typically present in functional or hybrid-functional languages. It is used for cases when it is valid for a procedure (function, method, etc) to terminate with no result. In Java, the idiomatic way to do this is to return the dreaded null-pointer, or `return null`. However, the possibility of a "no result"-result, or `null`, cannot be expressed by the type system, and is typically the source of numerous `NullPointerExceptions` where the caller of a method forgets to check if the returned value is, in fact, an instance before dereferencing it. The Option type explicitly expresses that a value may be something, or may be nothing, at the type level.
+This is my first attempt at the Optional<V> type, implemented in Java. Optional, or variants of it, is a ubiquitous type typically present in functional or hybrid-functional languages. It is used for cases when it is valid for a procedure (function, method, etc) to terminate with no result. In Java, the idiomatic way to do this is to return the dreaded null-pointer, or `return null`. However, the possibility of a "no result"-result, or `null`, cannot be expressed by the type system, and is typically the source of numerous `NullPointerExceptions` where the caller of a method forgets to check if the returned value is, in fact, an instance before dereferencing it. The Optional type explicitly expresses that a value may be something, or may be nothing, at the type level.
 
 
 Basic use
